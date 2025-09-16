@@ -5,16 +5,23 @@
 #include <cstdint> 
 #include <vector>
 
-// Struct to hold file metadata
 struct FileInfo {
-    std::string path;       // Full path
-    uintmax_t size;         // File size in bytes
-    std::string lastModified; // Last modification time (string formatted)
-    std::string type;  
-     std::string hash;        // File type (extension)
+    std::string path;
+    uintmax_t size;
+    std::string lastModified;
+    std::string type;
+    std::string hash;
 };
 
-// Scans a directory and returns metadata for all files inside
-std::vector<FileInfo> scanDirectory(const std::string& directory);
+struct ScanResult {
+    std::vector<FileInfo> files;
+    double totalSpace;
+    double freeSpace;
+    double usedSpace;
+};
+
+// Updated return type
+ScanResult scanDirectory(const std::string& directory);
 
 #endif
+
