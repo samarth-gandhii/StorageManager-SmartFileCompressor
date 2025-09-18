@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <filesystem>
+#include "utils.h"
 
 namespace fs = std::filesystem;
 
@@ -157,52 +158,3 @@ std::vector<FileInfo> optimizer::rankFilesKnapsack(const std::vector<FileInfo> &
 
     return chosenFiles;
 }
-
-
-// std::vector<FileInfo> optimizer::rankFilesKnapsack(const std::vector<FileInfo> &files)
-// {
-//     int n = files.size();
-//     int W = static_cast<int>(totalSpace);
-
-//     std::vector<std::vector<double>> dp(n + 1, std::vector<double>(W + 1, 0));
-
-//     // For file "value", we can assume "size saved" = file.size (greedy)
-//     // Or later, weight = size, value = compression gain
-//     for (int i = 1; i <= n; i++)
-//     {
-//         int wt = static_cast<int>(files[i - 1].size);
-//         long long val = files[i - 1].lastModified; // value = size saved
-
-//         for (int w = 0; w <= W; w++)
-//         {
-//             if (wt <= w)
-//                 dp[i][w] = std::max(dp[i - 1][w],
-//                                     dp[i - 1][w - wt] + val);
-//             else
-//                 dp[i][w] = dp[i - 1][w];
-//         }
-//     }
-
-//     // Reconstruct chosen files
-//     int w = W;
-//     std::vector<FileInfo> chosen;
-//     for (int i = n; i > 0 && w >= 0; i--)
-//     {
-//         if (dp[i][w] != dp[i - 1][w])
-//         {
-//             chosen.push_back(files[i - 1]);
-//             w -= static_cast<int>(files[i - 1].size);
-//         }
-//     }
-
-//     // Sort chosen by size (largest first for presentation)
-//     std::sort(chosen.begin(), chosen.end(),
-//               [](const FileInfo &a, const FileInfo &b)
-//               {
-//                   return a.size > b.size;
-//               });
-
-//     return chosen;
-// }
-
-// Main optimizer
