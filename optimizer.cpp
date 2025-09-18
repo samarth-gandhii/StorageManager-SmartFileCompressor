@@ -32,3 +32,14 @@ void optimizer::optimizeFiles(std::vector<FileInfo> &files)
         }
     }
 }
+
+bool shouldDelete(const std::vector<FileInfo> &files){
+
+
+
+
+ }
+
+ bool shouldCompress(const std::vector<FileInfo> &files){
+
+ }
