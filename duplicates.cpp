@@ -49,7 +49,6 @@ findDuplicates(std::vector<FileInfo> &files)
     }
     return groups;
 }
-
 void handleDuplicates(std::vector<FileInfo> &files) {
     auto groups = findDuplicates(files);
 
@@ -59,7 +58,9 @@ void handleDuplicates(std::vector<FileInfo> &files) {
         if (pair.second.size() > 1) {
             std::cout << "Duplicate group " << groupNum++ << ":\n";
             for (const auto &file : pair.second) {
-                std::cout << "   " << file.path << "\n";
+                std::filesystem::path p(file.path);
+                std::cout << "   " << p.filename().string()   // just the file name
+                          << " (" << file.path << ")\n";   // full path in brackets
             }
         }
     }
@@ -80,3 +81,36 @@ void handleDuplicates(std::vector<FileInfo> &files) {
         }
     }
 }
+
+
+// void handleDuplicates(std::vector<FileInfo> &files) {
+//     auto groups = findDuplicates(files);
+
+//     // Show duplicates
+//     int groupNum = 1;
+//     for (const auto &pair : groups) {
+//         if (pair.second.size() > 1) {
+//             std::cout << "Duplicate group " << groupNum++ << ":\n";
+//             for (const auto &file : pair.second) {
+//                 std::cout << "   " << file.name().string()
+//                 << "   " << file.path << "\n";
+//             }
+//         }
+//     }
+
+//     std::cout << "\nDo you want to delete duplicates? (y/n): ";
+//     char choice;
+//     std::cin >> choice;
+
+//     if (choice == 'y' || choice == 'Y') {
+//         for (const auto &pair : groups) {
+//             if (pair.second.size() > 1) {
+//                 // Keep the first file, delete the rest
+//                 for (size_t i = 1; i < pair.second.size(); ++i) {
+//                     std::filesystem::remove(pair.second[i].path);
+//                     std::cout << "Deleted: " << pair.second[i].path << "\n";
+//                 }
+//             }
+//         }
+//     }
+// }
