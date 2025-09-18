@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "scanner.h"
+
 class optimizer
 {
 public:
@@ -13,11 +14,16 @@ public:
 
 private:
     double totalSpace;
-    bool shouldDelete(const FileInfo &file);
-    bool shouldCompress(const FileInfo &file);
-    // double calculateUsedSpace(const std::vector<FileInfo>& files);
 
+    // New: DP-based knapsack ranking
+    std::vector<FileInfo> rankFilesKnapsack(const std::vector<FileInfo> &files);
+
+    // Only need shouldCompress (for text files)
+    bool shouldCompress(const FileInfo &file);
+
+    // File operations
     void deleteFile(FileInfo &file);
     void compressFile(FileInfo &file); // Will internally call Huffman
 };
+
 #endif

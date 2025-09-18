@@ -6,9 +6,10 @@
 #include <vector>
 
 struct FileInfo {
+    std::string name;
     std::string path;
     uintmax_t size;
-    std::string lastModified;
+    long long lastModified;
     std::string type;
     std::string hash;
 };
