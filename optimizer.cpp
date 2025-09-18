@@ -2,112 +2,137 @@
 #include <iostream>
 #include <algorithm>
 #include <filesystem>
-#include "utils.h"
 
 namespace fs = std::filesystem;
 
 optimizer::optimizer(double size) : totalSpace(size) {}
 
-
-void optimizer::optimizeFiles(std::vector<FileInfo> &files)
-{
-    // Step 1: Rank files using knapsack
+void optimizer::optimizeFiles(std::vector<FileInfo>& files) {
     std::vector<FileInfo> ranked = rankFilesKnapsack(files);
-
-    std::cout << "Optimized file ranking (Knapsack):\n";
-    for (size_t i = 0; i < ranked.size(); ++i)
-    {
-        std::cout << i + 1 << ". " << ranked[i].name
-                  << " (" << ranked[i].size / (1024.0 * 1024.0) << " MB)\n";
-    }
-
-    // Step 2: User choice
-    int choice;
-    std::cout << "\nEnter the rank of the file you want to proceed with (0 to exit): ";
-    std::cin >> choice;
-
-    if (choice <= 0 || choice > (int)ranked.size())
-    {
-        std::cout << "Exiting...\n";
+    
+    if (ranked.empty()) {
+        std::cout << "No files available for optimization." << std::endl;
         return;
     }
-
-    FileInfo &selected = ranked[choice - 1];
-
-    // Step 3: If text file, show both delete + compress
-    if (shouldCompress(selected))
-    {
-        std::cout << "File: " << selected.name << " is a text file.\n";
-        std::cout << "Options:\n1. Delete\n2. Compress\nChoice: ";
+    
+    std::cout << "\n=== Optimized file ranking (Knapsack) ===" << std::endl;
+    for (size_t i = 0; i < ranked.size(); ++i) {
+        std::cout << i + 1 << ". " << ranked[i].name 
+                  << " (" << ranked[i].size / (1024.0 * 1024.0) << " MB)" << std::endl;
+    }
+    
+    int choice;
+    while (true) {
+        std::cout << "\nEnter the rank of the file you want to proceed with (1-" 
+                  << ranked.size() << ", 0 to exit): ";
+        std::cin >> choice;
+        
+        if (choice == 0) {
+            std::cout << "Exiting..." << std::endl;
+            return;
+        }
+        
+        if (choice < 1 || choice > static_cast<int>(ranked.size())) {
+            std::cout << "Invalid choice. Please enter a number between 1 and " 
+                      << ranked.size() << std::endl;
+            continue;
+        }
+        
+        break;
+    }
+    
+    FileInfo selected = ranked[choice - 1];
+    
+    if (shouldCompress(selected)) {
+        std::cout << "File " << selected.name << " is a text file." << std::endl;
+        std::cout << "Options:\n1. Delete\n2. Compress" << std::endl;
         int action;
         std::cin >> action;
-        if (action == 1)
-        {
+        
+        if (action == 1) {
             deleteFile(selected);
-        }
-        else if (action == 2)
-        {
+        } else if (action == 2) {
             compressFile(selected);
+        } else {
+            std::cout << "Invalid option." << std::endl;
         }
-    }
-    // Step 4: If not text file, only show delete
-    else
-    {
-        std::cout << "File: " << selected.name << " is NOT a text file.\n";
-        std::cout << "Options:\n1. Delete\nChoice: ";
+    } else {
+        std::cout << "File " << selected.name << " is NOT a text file." << std::endl;
+        std::cout << "Options:\n1. Delete" << std::endl;
         int action;
         std::cin >> action;
-        if (action == 1)
-        {
+        
+        if (action == 1) {
             deleteFile(selected);
+        } else {
+            std::cout << "Invalid option." << std::endl;
         }
     }
 }
 
-// Checks if file can be compressed (text-based extensions)
-bool optimizer::shouldCompress(const FileInfo &file)
-{
+bool optimizer::shouldCompress(const FileInfo& file) {
     std::string ext = fs::path(file.name).extension().string();
-    return (ext == ".txt" || ext == ".log" || ext == ".csv");
+    return (ext == ".txt" || ext == ".log" || ext == ".csv" || ext == ".cpp" || ext == ".h");
 }
 
-// Deletes file from system
-void optimizer::deleteFile(FileInfo &file)
-{
-    try
-    {
+void optimizer::deleteFile(FileInfo& file) {
+    try {
         fs::remove(file.path);
-        std::cout << "Deleted: " << file.name << "\n";
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error deleting " << file.name << ": " << e.what() << "\n";
+        std::cout << "Deleted: " << file.name << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Error deleting " << file.name << ": " << e.what() << std::endl;
     }
 }
 
-// Compresses file (stub, hook for Huffman compression)
-void optimizer::compressFile(FileInfo &file)
-{
-    std::cout << "Compressing: " << file.name << " ...\n";
-    // TODO: Call Huffman compression here
+void optimizer::compressFile(FileInfo& file) {
+    std::cout << "Compressing " << file.name << "..." << std::endl;
+    // This is handled in main.cpp case 4 now
 }
 
-
-std::vector<FileInfo> optimizer::rankFilesKnapsack(const std::vector<FileInfo> &files)
-{
+// FIXED RANKING FUNCTION
+std::vector<FileInfo> optimizer::rankFilesKnapsack(const std::vector<FileInfo>& files) {
     int n = files.size();
-    // Assuming totalSpace is a class member of optimizer and correctly defined.
-    long long W = totalSpace;
-
-    // DP table: dp[i][w] = max value with first i items and weight w.
-    std::vector<std::vector<long long>> dp(n + 1, std::vector<long long>(W + 1, 0));
-
-    for (int i = 1; i <= n; i++) {
-        long long days = files[i - 1].lastModified;
-        long long val = files[i - 1].size * days; // Value = size * days since last modified
-        long long wt = files[i - 1].size;
-
-        for (long long w = 0; w <= W; w++) {
+    std::cout << "\nDEBUG: Ranking " << n << " files" << std::endl;
+    std::cout << "Total Space: " << totalSpace << " MB" << std::endl;
+    
+    if (n == 0) return {};
+    
+    // Convert totalSpace from MB to KB for reasonable capacity
+    int W = static_cast<int>(totalSpace * 1024); // MB to KB
+    if (W > 100000) W = 100000; // Cap at 100GB in KB to prevent memory issues
+    
+    std::vector<std::vector<double>> dp(n + 1, std::vector<double>(W + 1, 0));
+    
+    // Show first few files for debugging
+    for (size_t i = 0; i < std::min((size_t)3, files.size()); ++i) {
+        std::cout << "File " << i << ": " << files[i].name 
+                  << " Size: " << files[i].size / (1024.0 * 1024.0) << " MB"
+                  << " Age: " << files[i].lastModified << " days" << std::endl;
+    }
+    
+    // Improved value and weight calculation
+    for (int i = 1; i <= n; ++i) {
+        // Convert file size to KB for consistent units
+        int wt = static_cast<int>(files[i - 1].size / 1024); // Size in KB
+        if (wt == 0) wt = 1; // Minimum weight of 1KB
+        
+        // Better value function: combine multiple factors
+        double sizeScore = files[i - 1].size / (1024.0 * 1024.0); // Size in MB
+        double ageScore = (files[i - 1].lastModified + 1) * 0.1;  // Age factor (newer = lower score)
+        
+        // Type-based scoring
+        double typeScore = 1.0;
+        if (files[i - 1].type == ".tmp" || files[i - 1].type == ".log") {
+            typeScore = 3.0; // Higher priority for temp/log files
+        } else if (files[i - 1].type == ".bak" || files[i - 1].type == ".old") {
+            typeScore = 2.5; // High priority for backup files
+        } else if (files[i - 1].type == ".cache") {
+            typeScore = 2.0; // Medium priority for cache files
+        }
+        
+        double val = sizeScore * typeScore + ageScore; // Combined value
+        
+        for (int w = 0; w <= W; ++w) {
             if (wt <= w) {
                 dp[i][w] = std::max(dp[i - 1][w], dp[i - 1][w - wt] + val);
             } else {
@@ -115,46 +140,24 @@ std::vector<FileInfo> optimizer::rankFilesKnapsack(const std::vector<FileInfo> &
             }
         }
     }
-
-    // Reconstruct chosen and remaining files
-    long long w = W;
-    std::vector<FileInfo> chosenFiles;
-    std::vector<FileInfo> remainingFiles; // This will hold the files not chosen
-    std::vector<bool> isChosen(n, false);
-
-    for (int i = n; i > 0 && w >= 0; i--) {
-        long long wt = files[i - 1].size;
+    
+    // Reconstruct solution (which files were selected)
+    int w = W;
+    std::vector<FileInfo> chosen;
+    std::vector<bool> selected(n, false);
+    
+    for (int i = n; i > 0 && w > 0; i--) {
         if (dp[i][w] != dp[i - 1][w]) {
-            chosenFiles.push_back(files[i - 1]);
-            w -= wt;
-            isChosen[i - 1] = true;
+            chosen.push_back(files[i - 1]);
+            selected[i - 1] = true;
+            w -= static_cast<int>(files[i - 1].size / 1024);
         }
     }
-
-    // Identify the files not chosen by the knapsack algorithm
-    for (int i = 0; i < n; ++i) {
-        if (!isChosen[i]) {
-            remainingFiles.push_back(files[i]);
-        }
-    }
-
-    // Sort chosen by size (largest first for presentation)
-    std::sort(chosenFiles.begin(), chosenFiles.end(),
-              [](const FileInfo &a, const FileInfo &b) {
-                  return a.size > b.size;
-              });
-
-    // Sort remaining files by size (largest first for presentation)
-    std::sort(remainingFiles.begin(), remainingFiles.end(),
-              [](const FileInfo &a, const FileInfo &b) {
-                  return a.size > b.size;
-              });
-
-     for (int i = 0; i < n; ++i) {
-        
-            remainingFiles.push_back(chosenFiles[i]);
-        
-    }
-
-    return chosenFiles;
+    
+    // Reverse to show in selection order (preserve knapsack ranking)
+    std::reverse(chosen.begin(), chosen.end());
+    
+    std::cout << "Knapsack selected " << chosen.size() << " files for optimization" << std::endl;
+    
+    return chosen;
 }

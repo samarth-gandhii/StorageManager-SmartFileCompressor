@@ -2,13 +2,13 @@
 #define SCANNER_H
 
 #include <string>
-#include <cstdint> 
 #include <vector>
+#include <cstdint>  // Add this for uintmax_t
 
 struct FileInfo {
     std::string name;
     std::string path;
-    uintmax_t size;
+    uintmax_t size;      // This line needs to be here
     long long lastModified;
     std::string type;
     std::string hash;
@@ -16,13 +16,11 @@ struct FileInfo {
 
 struct ScanResult {
     std::vector<FileInfo> files;
-    double totalSpace;
-    double freeSpace;
-    double usedSpace;
+    double totalSpace = 0.0;
+    double freeSpace = 0.0;
+    double usedSpace = 0.0;
 };
 
-// Updated return type
 ScanResult scanDirectory(const std::string& directory);
 
 #endif
-
