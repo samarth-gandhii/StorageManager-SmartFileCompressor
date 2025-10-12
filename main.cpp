@@ -1,11 +1,12 @@
 #include "scanner.h"
 #include "duplicates.h"
 #include "optimizer.h"
+#include "utils.h"
 #include "summary.h"
 #include <iostream>
 
 int main() {
-    std::cout << "=== Storage Optimizer ===\n";
+    std::cout << "======= Storage Optimizer =======\n";
     std::cout << "Enter directory to scan: ";
     std::string directory;
     std::cin >> directory;
